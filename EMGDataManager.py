@@ -7,25 +7,46 @@ The preprocessing required from the data is as follows:
 """
 
 import pandas as pd
-from sklearn import preprocessing
+from sklearn import preprocessing  # used for normalization
 import os
 
 SKIP_ROWS = 7
 COLUMNS_USED = [0, 2, 3, 4, 5, 6, 7]  # omit date
 
-class EMGPreprocessor():
-    def __init__(self, path_to_main_folder):
-        self.time_series_collection = self._get_time_series_collection(path_to_main_folder)  # array of dataframes
+class EMGDataManager():
+    def __init__(self, path_to_main_folder, path_to_ratings, path_to_action_labels):
+        self.path_to_main_folder = path_to_main_folder
+        self.path_to_ratings = path_to_ratings
+        self.path_to_action_labels = path_to_action_labels
+        self.preprocessor = EMGDataPreprocessor()
+        self.time_series_collection = self.preprocessor.preprocess_time_series_collection(self.path_to_main_folder)  # array of dataframes
+        self.time_series_ratings = self.preprocessor.preprocess_ratings(self.path_to_ratings)
+        self.time_series_action_labels = self.preprocessor.preprocess_action_labels(self.path_to_action_labels)
 
     def get_time_series_collection(self):
         return self.time_series_collection
 
-    def _get_time_series_collection(self, path_to_main_folder):
+# TODO: Ask Carolyn about data structure.
+# How do I sync the ratings to the time series and action labels to the time series???
+
+class EMGDataPreprocessor:
+    def __init__(self):
+        pass
+
+    def preprocess_time_series_collection(self, path_to_main_folder):
         file_paths = self._get_file_paths(path_to_main_folder)
         time_series_collection = []
         for file_path in file_paths:
             time_series_collection += self._get_time_series(file_path)  # concatenates the returned values
         return time_series_collection
+
+    def preprocess_ratings(self, path_to_ratings):
+        # TODO: Get ratings in the order of the time series
+        return []
+
+    def preprocess_action_labels(self, path_to_action_labels):
+        # TODO: Get action labels for each of the time series, in order
+        return [[]]
 
     def _get_file_paths(self, path_to_main_folder):
         contents = os.listdir(path_to_main_folder)
