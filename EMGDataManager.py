@@ -13,21 +13,21 @@ import os
 SKIP_ROWS = 7
 COLUMNS_USED = [0, 2, 3, 4, 5, 6, 7]  # omit date
 
-class EMGDataManager():
+class EMGDataManager:
     def __init__(self, path_to_main_folder, path_to_ratings, path_to_action_labels):
         self.path_to_main_folder = path_to_main_folder
         self.path_to_ratings = path_to_ratings
         self.path_to_action_labels = path_to_action_labels
+
         self.preprocessor = EMGDataPreprocessor()
+
+        # These are synced using the file names
         self.time_series_collection = self.preprocessor.preprocess_time_series_collection(self.path_to_main_folder)  # array of dataframes
         self.time_series_ratings = self.preprocessor.preprocess_ratings(self.path_to_ratings)
         self.time_series_action_labels = self.preprocessor.preprocess_action_labels(self.path_to_action_labels)
 
     def get_time_series_collection(self):
         return self.time_series_collection
-
-# TODO: Ask Carolyn about data structure.
-# How do I sync the ratings to the time series and action labels to the time series???
 
 class EMGDataPreprocessor:
     def __init__(self):
@@ -70,7 +70,8 @@ class EMGDataPreprocessor:
         return []
 
     def _filter_NaN_rows(self, time_series):
-        # TODO: filter NaN rows from a single dataframe
+        # TODO: filter NaN rows from a single dataframe and make the value the same as the previous val
+        # Also justify values if needed
         return None
 
     def normalize_time_series(self, raw_time_series):
