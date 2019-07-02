@@ -65,12 +65,13 @@ class EMGDataPreprocessor:
     def _get_time_series_from_file(self, path_to_text):
         # TODO: Each file contains at least one time series, and each needs to be made into a dataframe
         # this code reads the whole file as one dataframe. it's for reference only
+        # instead of this, you need to be able to identify and parse the multiple time series stored in the file
         # raw_time_series = pd.read_table(path_to_text, skiprows=SKIP_ROWS, header=None,
         #                                 usecols=COLUMNS_USED, encoding="mac-roman")
         return []
 
     def _filter_NaN_rows(self, time_series):
-        # TODO: filter NaN rows from a single dataframe and make the value the same as the previous val
+        # TODO: filter NaN rows from a single dataframe and make the value the average of the previous and after
         # Also justify values if needed
         return None
 
