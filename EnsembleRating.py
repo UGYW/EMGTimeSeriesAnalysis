@@ -11,12 +11,13 @@ The EnsembleRating task is as follows:
 
 from tslearn.utils import to_time_series_dataset
 from tslearn.neighbors import KNeighborsTimeSeriesClassifier
+import numpy as np
 
 # this should actually be normalized as per their column value in data manager
-#                           1                   2                   3                   4
-mock_dataset_muscle1 = [[1, 2, 3, 3],       [3, 2, 3, 6],       [1, 2, 6, 7],       [3, 2, 3, 6]]
-mock_dataset_muscle2 = [[2, 5, 6, 7, 8, 9], [3, 2, 5, 6, 7, 3], [6, 5, 3, 4, 7, 8], [2, 5, 6, 7, 8, 9]]
-mock_labels = [1, 0, 2, 0]  # the rating scores
+#                                 1                   2                   3                   4
+mock_dataset_muscle1 = np.array([[1, 2, 3, 3],       [3, 2, 3, 6],       [1, 2, 6, 7],       [3, 2, 3, 6]])
+mock_dataset_muscle2 = np.array([[2, 5, 6, 7, 8, 9], [3, 2, 5, 6, 7, 3], [6, 5, 3, 4, 7, 8], [2, 5, 6, 7, 8, 9]])
+mock_labels = np.array([1, 0, 2, 0])  # the rating scores
 
 def main():
     X1 = to_time_series_dataset(mock_dataset_muscle1)
@@ -43,7 +44,7 @@ def main():
     print("Prediction: " + str(clf2.predict(X_test2)))
     print("Actual: " + str(y_test2))
 
-    # todo: make model for ratings and time as a feature
+    # todo: make model for ratings and total time as a feature
 
 
 if __name__ == '__main__':
