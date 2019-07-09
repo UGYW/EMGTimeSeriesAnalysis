@@ -29,6 +29,12 @@ class EMGDataManager:
     def get_time_series_collection(self):
         return self.time_series_collection
 
+    def get_time_series_ratings(self):
+        return self.time_series_ratings
+
+    def get_time_series_action_labels(self):
+        return self.time_series_action_labels
+
 class EMGDataPreprocessor:
     def __init__(self):
         pass
@@ -65,7 +71,7 @@ class EMGDataPreprocessor:
     def _get_time_series_from_file(self, path_to_text):
         # TODO: Each file contains at least one time series, and each needs to be made into a dataframe
         # this code reads the whole file as one dataframe. it's for reference only
-        # instead of this, you need to be able to identify and parse the multiple time series stored in the file
+        # instead of this below, you need to be able to identify and parse the multiple time series stored in the file
         # raw_time_series = pd.read_table(path_to_text, skiprows=SKIP_ROWS, header=None,
         #                                 usecols=COLUMNS_USED, encoding="mac-roman")
         return []
