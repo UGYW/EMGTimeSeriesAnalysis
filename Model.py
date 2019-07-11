@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 
 class Model:
-    def __init__(self, individual_model, ensemble_model, isKNN=False):
+    def __init__(self, individual_model, ensemble_model):
         self.individual_model = individual_model
         self.ensemble_model = ensemble_model
         self.mus1_model = deepcopy(self.individual_model)
@@ -12,8 +12,6 @@ class Model:
         self.mus4_model = deepcopy(self.individual_model)
         self.mus5_model = deepcopy(self.individual_model)
         self.mus6_model = deepcopy(self.individual_model)
-
-        self.isKNN = isKNN
 
         # we shouldn't need to shuffle the input_data if we're using clustering methods
         self.SPLIT_RATIO = [0.5, 0.3] # train and interm respectively. the remaining is test
@@ -103,11 +101,6 @@ class Model:
                                              self.mus3_input_data_test, self.mus4_input_data_test,
                                              self.mus5_input_data_test, self.mus6_input_data_test)
         return self.ensemble_model.predict(interm_pred)
-
-    def get_kneighbours(self, k=5):
-        # TODO
-        # This is run only in the event that the model is KNN!
-        pass
 
     def _calc_input_data_split(self, input_data_len):
         self.split_train_index = int(self.SPLIT_RATIO[0] * input_data_len)
