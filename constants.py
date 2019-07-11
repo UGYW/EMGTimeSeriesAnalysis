@@ -1,4 +1,7 @@
 SKIP_ROWS = 7
+INITIAL_OFFSET_INDEX = 3
+ROW_MAPPER_CUTOFF_INDEX = 4  # NON-inclusive
+ROB_OR_LAP_INDEX = 1
 
 MUS1 = "MUS1"
 MUS2 = "MUS2"
@@ -8,6 +11,9 @@ MUS5 = "MUS5"
 MUS6 = "MUS6"
 
 TIME = "TIME"
+
+ROB = "ROB"
+LAP = "LAP"
 
 # maps muscles to columns
 MUS2COL = {MUS1:2, MUS2:3, MUS3:4, MUS4:5, MUS5:6, MUS6:7}

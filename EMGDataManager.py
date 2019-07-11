@@ -10,93 +10,70 @@ import pandas as pd
 from sklearn import preprocessing  # used for normalization
 import os
 from constants import *
+from utilities import *
 
 class EMGDataManager:
-    def __init__(self, path_to_main_folder, path_to_ratings, path_to_action_labels):
+    def __init__(self, path_to_main_folder, path_to_timestamps, path_to_ratings=None):
         self.path_to_main_folder = path_to_main_folder
-        self.path_to_ratings = path_to_ratings
-        self.path_to_action_labels = path_to_action_labels
+        self.path_to_timestamps = path_to_timestamps
+        self.paths_to_texts = self._get_file_paths(self.path_to_main_folder)
+        # TODO: path to ratings not implemented rn
 
-        self.preprocessor = EMGDataPreprocessor()
+        # each of the keys corresponds to a 2D numpy array where
+        #   each array is a time series
+        self.ROB_datasets = {MUS1: None, MUS2: None, MUS3: None, MUS4: None, MUS5: None, MUS6:None}
+        self.LAP_datasets = {MUS1: None, MUS2: None, MUS3: None, MUS4: None, MUS5: None, MUS6:None}
+        self.ROB_ratings = []
+        self.LAP_ratings = []
+        # each of the keys correpsonds to an array of dicts where
+        #   each dict is like {ACT1: None, ACT2: None, etc} and corresponds to one knot
+        self.ROB_action_labels = []
+        self.LAP_action_labels = []
 
-        # These are synced using the file names
-        # time_series_collection format:
-        # {MUS1: [time series set 1], MUS2: [time series set 2], ... MUS6: [time series set 6]}
-        # where each set is a list of all the available time series for that muscle
-        # ts_map format: (multiple time series per file!)
-        # [filename1.0, filename1.1, filename2... ]
-        # used to map time series to ratings and action labels
-        # timestamps format:
-        # [[timestamps of file 1], [timestamps of file 2], ...]
-        self.time_series_collection, self.ts_map, self.timestamps = \
-            self.preprocessor.preprocess_time_series_input(self.path_to_main_folder)
-        self.time_series_ratings = self.preprocessor.preprocess_ratings(self.path_to_ratings)
-        self.time_series_action_labels = self.preprocessor.preprocess_action_labels(self.path_to_action_labels)
+        self.row_map = None  # Dataframe of the first four columns of the ratings
+        self.actions = []  # array of strings
 
-    def get_time_series_collection(self):
-        return self.time_series_collection
+        self.preprocess()
 
-    def get_time_series_ratings(self):
-        return self.time_series_ratings
+    def get_ROB_data(self):
+        return self.ROB_datasets, self.ROB_ratings, self.ROB_action_labels
 
-    def get_time_series_action_labels(self):
-        return self.time_series_action_labels
+    def get_LAP_ratings(self):
+        return self.LAP_datasets, self.LAP_ratings, self.LAP_action_labels
 
-class EMGDataPreprocessor:
-    def __init__(self):
-        pass
+    def get_row_map(self):
+        return self.row_map
 
-    def preprocess_time_series_input(self, path_to_main_folder):
-        time_series_collection = {MUS1:[], MUS2:[], MUS3:[], MUS4:[], MUS5:[], MUS6:[]}
-        ts_map = []
-        timestamps = []
-        file_paths = self._get_file_paths(path_to_main_folder)
-        for file_path in file_paths:
-            time_series_from_file = self._get_time_series(file_path)
-            time_series_index = 0
-            for time_series in time_series_from_file:
-                # add the filename without .txt
-                # appends for each time series in that file
-                # todo: ask how diff time series within same file are distinguished    vvvvvvvvv is it like this?
-                ts_map.append(os.path.basename(os.path.normpath(file_path))[:-4] + str(time_series_index))
-                timestamps.append(self._get_column(time_series, T2COL[TIME]))
-                for mus, col in MUS2COL.items():
-                    time_series_collection[mus].append(self._get_column(time_series, col))
-        return time_series_collection, ts_map, timestamps
+    def preprocess(self):
+        self._preprocess_timestamps()  # this has to run first because this inits the row map
+        #     TODO
 
-    def preprocess_ratings(self, path_to_ratings):
-        # TODO: Get ratings in the order of the time series
-        return []
+    def _preprocess_timestamps(self):
+        timestamps_df = pd.read_csv(self.path_to_timestamps)
+        self._preprocess_row_map(timestamps_df)
+        self._preprocess_actions(timestamps_df)
+        timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].to_dict('index')
+        for timestamp_index in range(len(timestamps_sets)):
+            timestamps = timestamps_sets[timestamp_index]
+            for action, time_str in timestamps.items():
+                time = str_to_seconds(time_str)  # convert to seconds
+                time = time - int(self.row_map.iloc[timestamp_index][INITIAL_OFFSET_INDEX]) # sub initial offset
+                timestamps[action] = time
+            if self.row_map.iloc[timestamp_index][ROB_OR_LAP_INDEX] == ROB:
+                self.ROB_action_labels.append(timestamps)
+            elif self.row_map.iloc[timestamp_index][ROB_OR_LAP_INDEX] == LAP:
+                self.LAP_action_labels.append(timestamps)
+        print(self.ROB_action_labels)
+        print(self.LAP_action_labels)
 
-    def preprocess_action_labels(self, path_to_action_labels):
-        # TODO: Get action labels for each of the time series, in order
-        return [[]]
+    def _preprocess_actions(self, timestamps_df):
+        self.actions = timestamps_df.columns[ROW_MAPPER_CUTOFF_INDEX:]
+
+    def _preprocess_row_map(self, timestamps_df):
+        self.row_map = timestamps_df.iloc[:, :ROW_MAPPER_CUTOFF_INDEX]  # contains the row mapping data for later preprocessing
+        self.row_map.iloc[:, INITIAL_OFFSET_INDEX:] = self.row_map.iloc[:, INITIAL_OFFSET_INDEX:].apply(str_to_seconds, axis=1)  # change the initial offset to seconds
 
     def _get_file_paths(self, path_to_main_folder):
         contents = os.listdir(path_to_main_folder)
         file_paths = [path_to_main_folder + "/" + i for i in contents if ".txt" in i]
         return file_paths
-
-    def _get_time_series(self, path_to_text):
-        # TODO
-        return []
-
-    def _get_column(self, time_series, col):
-        # TODO
-        return []  # make sure to return this as an array
-
-    def _get_time_series_from_file(self, path_to_text):
-        # TODO: Each file contains at least one time series, and each needs to be made into a dataframe
-        # this code reads the whole file as one dataframe. it's for reference only
-        # instead of this below, you need to be able to identify and parse the multiple time series stored in the file
-        return []
-
-    def _filter_NaN_rows(self, time_series):
-        # TODO: filter NaN rows from a single dataframe and make the value the average of the previous and after
-        # Also justify values if needed
-        return None
-
-    def normalize_time_series(self, raw_time_series):
-        # TODO: normalize a single array
-        # NOTE: DON'T RUN THIS UNTIL **AFTER** PARTITIONING TO TEST AND TRAIN - OTHERWISE CAUSES DATA LEAK
-        return None
