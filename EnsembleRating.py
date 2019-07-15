@@ -10,12 +10,12 @@ The EnsembleRating task is as follows:
 """
 
 from tslearn.utils import to_time_series_dataset
-from tslearn.neighbors import KNeighborsTimeSeriesClassifier
-from tslearn.clustering import TimeSeriesKMeans
 from sklearn.linear_model import SGDRegressor, SGDClassifier
 import numpy as np
 
-# TODO: decide between KNN and Kmeans once main data corp has been completed
+# Use one of these two models and the un-down-sampled uneven time series data
+from tslearn.clustering import GlobalAlignmentKernelKMeans
+from tslearn.clustering import TimeSeriesKMeans  # currently used
 
 # this should actually be normalized as per their column value in data manager
 mock_dataset_muscle1 = np.array([[1, 2, 3, 3],
