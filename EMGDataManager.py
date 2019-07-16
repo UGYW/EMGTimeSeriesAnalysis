@@ -72,9 +72,7 @@ class EMGDataManager:
                 while data_index < len(self.row_map) and \
                     data_file_key == self.row_map.iloc[data_index][CODE_INDEX] and \
                     rob_or_lap == self.row_map.iloc[data_index][KNOT_TYPE_INDEX]:
-                    print(data_file_key)
-                    print(data_index)
-                    print(rob_or_lap)
+                    logging.info("PROCESSING KNOT FROM " + data_file_key + " OF TYPE " + rob_or_lap)
                     start_time = self.row_map.iloc[data_index][START_TIME_INDEX]
                     end_time = self.row_map.iloc[data_index][END_TIME_INDEX]
 

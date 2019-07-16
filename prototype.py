@@ -1,5 +1,7 @@
 """Used to test new implementations"""
 from EMGDataManager import EMGDataManager
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 PATH_TO_DATA = "./data_sample/"
 PATH_TO_RATING_AND_TIMESTAMPS = "./data_sample/sample.csv"
