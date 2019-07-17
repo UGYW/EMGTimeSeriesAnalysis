@@ -86,8 +86,6 @@ class EMGDataManager:
                         self._load_time_series_to_dict(self.LAP_datasets, mus1_data, mus2_data, mus3_data,
                                                                           mus4_data, mus5_data, mus6_data)
 
-                    # TODO: turn mus data into 2d numpy arrays of time series
-
                     if self.downsampler_active:
                         # TODO: downsample from loaded ROB and LAP datasets
                         mus1_data_downsampled = []
@@ -112,12 +110,14 @@ class EMGDataManager:
                     rob_or_lap = self.row_map.iloc[data_index][KNOT_TYPE_INDEX]
                     data_index += 1
 
-                if data_index > len(self.row_map) - 1:
+                if data_index > len(self.row_map) - 1 or \
+                                self.row_map.iloc[data_index][CODE_INDEX] != data_file_key:
                     break
-                elif self.row_map.iloc[data_index][CODE_INDEX] != data_file_key:
-                    break  # takes care of situation where a recording only has LAP or ROB
         self._convert_mus_data_to_time_series(self.ROB_datasets)
         self._convert_mus_data_to_time_series(self.LAP_datasets)
+        if self.downsampler_active:
+            self._convert_mus_data_to_time_series(self.ROB_datasets_downsampled)
+            self._convert_mus_data_to_time_series(self.LAP_datasets_downsampled)
         #     TODO: preprocess ratings
 
     def _convert_mus_data_to_time_series(self, ts_dict):
