@@ -6,7 +6,7 @@ from data_utils import *
 import logging
 
 class EMGDataManager:
-    def __init__(self, path_to_main_folder, path_to_timestamps, path_to_ratings=None, downsampler=True):
+    def __init__(self, path_to_main_folder, path_to_timestamps, path_to_ratings=None, downsampler=False):
         self.path_to_main_folder = path_to_main_folder
         self.path_to_timestamps = path_to_timestamps
         # TODO: path to ratings not implemented rn
@@ -58,11 +58,20 @@ class EMGDataManager:
         return self.actions
 
     def preprocess(self):
+        # ACTION LABELS
         self._preprocess_timestamps()  # this has to run first because this inits the row map
 
-        data_file_paths = get_file_paths(self.path_to_main_folder)
-        data_index = 0
+        # INPUT DATA
+        self._preprocess_data_files(get_file_paths(self.path_to_main_folder))
+        if self.downsampler_active:
+            self._make_downsampled_datasets()
+        self._convert_datasets_to_time_series()
 
+        # RATINGS
+        #     TODO
+
+    def _preprocess_data_files(self, data_file_paths):
+        data_index = 0
         for data_file_path in data_file_paths:
             logging.info("LOADING " + data_file_path)
             data_file_key, video_sesh_dfs = self._extract_video_sessions_data(data_file_path)
@@ -70,32 +79,10 @@ class EMGDataManager:
             for df in video_sesh_dfs:
                 df = self._preprocess_column_values(df)
                 df = self._trim_time_diff(data_index, df)
-
                 rob_or_lap = self.row_map.iloc[data_index][KNOT_TYPE_INDEX]
+
                 while self.check_is_same_video(data_index, data_file_key, rob_or_lap):
-                    logging.info("PROCESSING KNOT FROM " + data_file_key + " OF TYPE " + rob_or_lap)
-                    start_time = self.row_map.iloc[data_index][START_TIME_INDEX]
-                    end_time = self.row_map.iloc[data_index][END_TIME_INDEX]
-
-                    mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data = \
-                        extract_mus_data_in_time_range(df, start_time, end_time)
-                    self.load_datasets(self.ROB_datasets, self.LAP_datasets, data_index, start_time, end_time,
-                                       mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data)
-
-                    if self.downsampler_active:
-                        # TODO: downsample from loaded ROB and LAP datasets
-                        mus1_data_downsampled = []
-                        mus2_data_downsampled = []
-                        mus3_data_downsampled = []
-                        mus4_data_downsampled = []
-                        mus5_data_downsampled = []
-                        mus6_data_downsampled = []
-
-                        self.load_datasets(self.ROB_datasets_downsampled, self.LAP_datasets_downsampled,
-                                           data_index, start_time, end_time,
-                                           mus1_data_downsampled, mus2_data_downsampled, mus3_data_downsampled,
-                                           mus4_data_downsampled, mus5_data_downsampled, mus6_data_downsampled)
-
+                    self._preprocess_knot(data_file_key, data_index, df, rob_or_lap)
                     rob_or_lap = self.row_map.iloc[data_index][KNOT_TYPE_INDEX]
                     data_index += 1
 
@@ -103,8 +90,36 @@ class EMGDataManager:
                                 self.row_map.iloc[data_index][CODE_INDEX] != data_file_key:
                     break
 
-        self._convert_datasets_to_time_series()
-        #     TODO: preprocess ratings
+    def _make_downsampled_datasets(self):
+        # !!! ASSUMES ROB AND LAP DATASETS HAVE BEEN LOADED BUT NOT YET CONVERTED TO TIME SERIES !!!
+        # TODO: downsample from loaded ROB and LAP datasets
+        data_index_downsampled = 0
+        mus1_data_downsampled = []
+        mus2_data_downsampled = []
+        mus3_data_downsampled = []
+        mus4_data_downsampled = []
+        mus5_data_downsampled = []
+        mus6_data_downsampled = []
+        self.load_datasets(self.ROB_datasets_downsampled, self.LAP_datasets_downsampled, data_index_downsampled,
+                           mus1_data_downsampled, mus2_data_downsampled, mus3_data_downsampled,
+                           mus4_data_downsampled, mus5_data_downsampled, mus6_data_downsampled)
+
+    def _convert_datasets_to_time_series(self):
+        convert_mus_data_to_time_series(self.ROB_datasets)
+        convert_mus_data_to_time_series(self.LAP_datasets)
+        if self.downsampler_active:
+            convert_mus_data_to_time_series(self.ROB_datasets_downsampled)
+            convert_mus_data_to_time_series(self.LAP_datasets_downsampled)
+
+    def _preprocess_knot(self, data_file_key, data_index, df, rob_or_lap):
+        logging.info("PROCESSING KNOT FROM " + data_file_key + " OF TYPE " + rob_or_lap)
+        start_time = self.row_map.iloc[data_index][START_TIME_INDEX]
+        end_time = self.row_map.iloc[data_index][END_TIME_INDEX]
+        mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data = \
+            extract_mus_data_in_time_range(df, start_time, end_time)
+        self.load_datasets(self.ROB_datasets, self.LAP_datasets, data_index,
+                           mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data,
+                           start_time, end_time)
 
     def _extract_video_sessions_data(self, data_file_path):
         raw_time_series = pd.read_table(data_file_path, skiprows=SKIP_ROWS, header=None,
@@ -146,16 +161,19 @@ class EMGDataManager:
         self.row_map.iloc[:, START_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX:].apply(np.min, axis=1)
         self.row_map.iloc[:, END_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX:].apply(np.max, axis=1)
 
-    def load_datasets(self, ROB_dataset, LAP_dataset, data_index, start_time, end_time,
-                            mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data):
+    def load_datasets(self, ROB_dataset, LAP_dataset, data_index,
+                            mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data,
+                            start_time=None, end_time=None):
         if self.row_map.iloc[data_index][KNOT_TYPE_INDEX] == ROB:
             append_mus_data_to_dict(ROB_dataset, mus1_data, mus2_data, mus3_data,
                                     mus4_data, mus5_data, mus6_data)
-            self.ROB_datasets_times.append(end_time - start_time)
+            if start_time is not None and end_time is not None:
+                self.ROB_datasets_times.append(end_time - start_time)
         elif self.row_map.iloc[data_index][KNOT_TYPE_INDEX] == LAP:
             append_mus_data_to_dict(LAP_dataset, mus1_data, mus2_data, mus3_data,
                                     mus4_data, mus5_data, mus6_data)
-            self.LAP_datasets_times.append(end_time - start_time)
+            if start_time is not None and end_time is not None:
+                self.LAP_datasets_times.append(end_time - start_time)
         else:
             raise Exception("Knot Type " + self.row_map.iloc[data_index][KNOT_TYPE_INDEX] +
                             " is not " + ROB + " or " + LAP)
@@ -165,10 +183,3 @@ class EMGDataManager:
         pass_index = df.iloc[:, TIMESTAMP_INDEX].searchsorted(time_diff)[0]
         df = df.iloc[pass_index:]
         return df
-
-    def _convert_datasets_to_time_series(self):
-        convert_mus_data_to_time_series(self.ROB_datasets)
-        convert_mus_data_to_time_series(self.LAP_datasets)
-        if self.downsampler_active:
-            convert_mus_data_to_time_series(self.ROB_datasets_downsampled)
-            convert_mus_data_to_time_series(self.LAP_datasets_downsampled)
