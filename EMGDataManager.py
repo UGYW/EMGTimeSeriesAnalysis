@@ -18,7 +18,6 @@ class EMGDataManager:
     def __init__(self, path_to_main_folder, path_to_timestamps, path_to_ratings=None, downsampler=True):
         self.path_to_main_folder = path_to_main_folder
         self.path_to_timestamps = path_to_timestamps
-        self.paths_to_texts = self._get_file_paths(self.path_to_main_folder)
         # TODO: path to ratings not implemented rn
 
         self.downsampler_active = downsampler  # determines whether or not to init downsampling
@@ -27,8 +26,8 @@ class EMGDataManager:
         #   each array is a time series
         self.ROB_datasets = {MUS1: [], MUS2: [], MUS3: [], MUS4: [], MUS5: [], MUS6: []}
         self.LAP_datasets = {MUS1: [], MUS2: [], MUS3: [], MUS4: [], MUS5: [], MUS6: []}
-        self.ROB_datasets_times = {MUS1: [], MUS2: [], MUS3: [], MUS4: [], MUS5: [], MUS6: []}
-        self.LAP_datasets_times = {MUS1: [], MUS2: [], MUS3: [], MUS4: [], MUS5: [], MUS6: []}
+        self.ROB_datasets_times = []
+        self.LAP_datasets_times = []
         self.ROB_datasets_downsampled = {MUS1: [], MUS2: [], MUS3: [], MUS4: [], MUS5: [], MUS6: []}
         self.LAP_datasets_downsampled = {MUS1: [], MUS2: [], MUS3: [], MUS4: [], MUS5: [], MUS6: []}
         self.ROB_ratings = []
@@ -44,17 +43,33 @@ class EMGDataManager:
         self.preprocess()
 
     def get_ROB_data(self):
-        return self.ROB_datasets, self.ROB_ratings, self.ROB_action_labels
+        return self.ROB_datasets
 
-    def get_LAP_ratings(self):
-        return self.LAP_datasets, self.LAP_ratings, self.LAP_action_labels
+    def get_ROB_metadata(self):
+        return self.ROB_datasets_times, self.ROB_ratings, self.ROB_action_labels
+
+    def get_LAP_data(self):
+        return self.LAP_datasets
+
+    def get_LAP_metadata(self):
+        return self.LAP_datasets_times, self.LAP_ratings, self.LAP_action_labels
+
+    def get_ROB_data_downsampled(self):
+        return self.ROB_datasets_downsampled
+
+    def get_LAP_data_downsampled(self):
+        return self.LAP_datasets_downsampled
 
     def get_row_map(self):
         return self.row_map
 
+    def get_actions(self):
+        return self.actions
+
+
     def preprocess(self):
         self._preprocess_timestamps()  # this has to run first because this inits the row map
-        data_file_paths = self._get_file_paths(self.path_to_main_folder)
+        data_file_paths = get_file_paths(self.path_to_main_folder)
         data_index = 0
         for data_file_path in data_file_paths:
             logging.info("LOADING " + data_file_path)
@@ -82,9 +97,14 @@ class EMGDataManager:
                     if self.row_map.iloc[data_index][KNOT_TYPE_INDEX] == ROB:
                         self._load_time_series_to_dict(self.ROB_datasets, mus1_data, mus2_data, mus3_data,
                                                                           mus4_data, mus5_data, mus6_data)
+                        self.ROB_datasets_times.append(end_time - start_time)
                     elif self.row_map.iloc[data_index][KNOT_TYPE_INDEX] == LAP:
                         self._load_time_series_to_dict(self.LAP_datasets, mus1_data, mus2_data, mus3_data,
                                                                           mus4_data, mus5_data, mus6_data)
+                        self.LAP_datasets_times.append(end_time - start_time)
+                    else:
+                        raise Exception("Knot Type " + self.row_map.iloc[data_index][KNOT_TYPE_INDEX] +
+                                        " is not " + ROB + " or " + LAP)
 
                     if self.downsampler_active:
                         # TODO: downsample from loaded ROB and LAP datasets
@@ -191,31 +211,25 @@ class EMGDataManager:
 
     def _preprocess_timestamps(self):
         timestamps_df = pd.read_csv(self.path_to_timestamps)
-        self._preprocess_row_map(timestamps_df)
         self._preprocess_actions(timestamps_df)
+
+        timestamps_df.iloc[:, TIME_DIFF_INDEX] = timestamps_df.iloc[:, TIME_DIFF_INDEX].apply(str_to_seconds)
+        for column in timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX: ].columns:
+            timestamps_df[column] = timestamps_df[column].apply(str_to_seconds)
+            timestamps_df[column] = timestamps_df[column] - timestamps_df.iloc[:, TIME_DIFF_INDEX]
+
+        self.row_map = timestamps_df.iloc[:, ROW_MAPPER_INDICES]  # gets the first four columns
+        self.row_map.iloc[:, START_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX :].apply(np.min, axis=1)
+        self.row_map.iloc[:, END_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX :].apply(np.max, axis=1)
+
         timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].to_dict('index')
+
         for timestamp_index in range(len(timestamps_sets)):
             timestamps = timestamps_sets[timestamp_index]
-            for action, time_str in timestamps.items():
-                time = str_to_seconds(time_str)  # convert to seconds
-                time = time - int(self.row_map.iloc[timestamp_index][TIME_DIFF_INDEX]) # sub initial offset
-                timestamps[action] = time
             if self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == ROB:
                 self.ROB_action_labels.append(timestamps)
             elif self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == LAP:
                 self.LAP_action_labels.append(timestamps)
 
-    def _preprocess_row_map(self, timestamps_df):
-        self.row_map = timestamps_df.iloc[:, ROW_MAPPER_INDICES]  # contains the row mapping data for later preprocessing
-        self.row_map.iloc[:, TIME_DIFF_INDEX] = self.row_map.iloc[:, TIME_DIFF_INDEX].apply(str_to_seconds)  # change the initial offset to seconds
-        # TODO: apply method - if value is -1 then use average or prev value to pad
-        self.row_map.iloc[:, START_TIME_INDEX] = self.row_map.iloc[:, START_TIME_INDEX].apply(str_to_seconds)
-        self.row_map.iloc[:, END_TIME_INDEX] = self.row_map.iloc[:, END_TIME_INDEX].apply(str_to_seconds)
-
     def _preprocess_actions(self, timestamps_df):
         self.actions = timestamps_df.columns[ROW_MAPPER_CUTOFF_INDEX:]
-
-    def _get_file_paths(self, path_to_main_folder):
-        contents = os.listdir(path_to_main_folder)
-        file_paths = [path_to_main_folder + "/" + i for i in contents if ".txt" in i]
-        return file_paths
