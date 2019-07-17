@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from constants import *
 from tslearn.utils import to_time_series_dataset
+from scipy.signal import resample
 
 def _print_whole_df(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
@@ -72,6 +73,14 @@ def extract_mus_data_in_time_range(df, start_time, end_time):
     mus5_data = df_slice.iloc[:, MUS5_INDEX].values
     mus6_data = df_slice.iloc[:, MUS6_INDEX].values
     return mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data
+
+def downsample_ts_dict(ts_dict, MUS_key):
+    min_len = min([len(knot) for knot in ts_dict[MUS_key]])
+    mus_data_downsampled = []
+    for knot in ts_dict[MUS_key]:
+        subsample = resample(knot, min_len)
+        mus_data_downsampled.append(subsample)
+    return mus_data_downsampled
 
 def append_mus_data_to_dict(ts_dict,
                             mus1_data, mus2_data, mus3_data,

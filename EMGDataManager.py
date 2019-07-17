@@ -1,7 +1,4 @@
-import pandas as pd
 import numpy as np
-import os
-from constants import *
 from data_utils import *
 import logging
 
@@ -92,17 +89,19 @@ class EMGDataManager:
 
     def _make_downsampled_datasets(self):
         # !!! ASSUMES ROB AND LAP DATASETS HAVE BEEN LOADED BUT NOT YET CONVERTED TO TIME SERIES !!!
-        # TODO: downsample from loaded ROB and LAP datasets
-        data_index_downsampled = 0
-        mus1_data_downsampled = []
-        mus2_data_downsampled = []
-        mus3_data_downsampled = []
-        mus4_data_downsampled = []
-        mus5_data_downsampled = []
-        mus6_data_downsampled = []
-        self.load_datasets(self.ROB_datasets_downsampled, self.LAP_datasets_downsampled, data_index_downsampled,
-                           mus1_data_downsampled, mus2_data_downsampled, mus3_data_downsampled,
-                           mus4_data_downsampled, mus5_data_downsampled, mus6_data_downsampled)
+        self.ROB_datasets_downsampled[MUS1] = downsample_ts_dict(self.ROB_datasets, MUS1)
+        self.ROB_datasets_downsampled[MUS2] = downsample_ts_dict(self.ROB_datasets, MUS2)
+        self.ROB_datasets_downsampled[MUS3] = downsample_ts_dict(self.ROB_datasets, MUS3)
+        self.ROB_datasets_downsampled[MUS4] = downsample_ts_dict(self.ROB_datasets, MUS4)
+        self.ROB_datasets_downsampled[MUS5] = downsample_ts_dict(self.ROB_datasets, MUS5)
+        self.ROB_datasets_downsampled[MUS6] = downsample_ts_dict(self.ROB_datasets, MUS6)
+
+        self.LAP_datasets_downsampled[MUS1] = downsample_ts_dict(self.LAP_datasets, MUS1)
+        self.LAP_datasets_downsampled[MUS2] = downsample_ts_dict(self.LAP_datasets, MUS2)
+        self.LAP_datasets_downsampled[MUS3] = downsample_ts_dict(self.LAP_datasets, MUS3)
+        self.LAP_datasets_downsampled[MUS4] = downsample_ts_dict(self.LAP_datasets, MUS4)
+        self.LAP_datasets_downsampled[MUS5] = downsample_ts_dict(self.LAP_datasets, MUS5)
+        self.LAP_datasets_downsampled[MUS6] = downsample_ts_dict(self.LAP_datasets, MUS6)
 
     def _convert_datasets_to_time_series(self):
         convert_mus_data_to_time_series(self.ROB_datasets)
