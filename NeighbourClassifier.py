@@ -5,12 +5,6 @@ class NeighbourClassifier:
     def __init__(self, neighbour_classifier, actions):
         self.neighbour_classifier = neighbour_classifier
         self.actions = actions
-        self.mus1_classifier = deepcopy(self.neighbour_classifier)
-        self.mus2_classifier = deepcopy(self.neighbour_classifier)
-        self.mus3_classifier = deepcopy(self.neighbour_classifier)
-        self.mus4_classifier = deepcopy(self.neighbour_classifier)
-        self.mus5_classifier = deepcopy(self.neighbour_classifier)
-        self.mus6_classifier = deepcopy(self.neighbour_classifier)
 
         self.SPLIT_RATIO = 0.8  # % of data used to train the model
         self.split_index = None
@@ -48,8 +42,18 @@ class NeighbourClassifier:
         self.mus6_input_data_test = input_data_mus6[self.split_index:]
 
     def predict(self):
-        # TODO: find average timestamp for each test point
         predicted_timestamps = []
+        num_test_points = len(self.mus1_input_data_test)
+        for test_pt_i in range(num_test_points):
+            average_timestamp = self.find_average_timestamp(
+                self.mus1_input_data_test[test_pt_i],
+                self.mus2_input_data_test[test_pt_i],
+                self.mus3_input_data_test[test_pt_i],
+                self.mus4_input_data_test[test_pt_i],
+                self.mus5_input_data_test[test_pt_i],
+                self.mus6_input_data_test[test_pt_i]
+            )
+            predicted_timestamps.append(average_timestamp)
         return predicted_timestamps
 
     def get_test_timestamps(self):
@@ -66,14 +70,14 @@ class NeighbourClassifier:
         avg_timestamp_mus4 = self.find_average_timestamp(nbr_idx_mus4)
         avg_timestamp_mus5 = self.find_average_timestamp(nbr_idx_mus5)
         avg_timestamp_mus6 = self.find_average_timestamp(nbr_idx_mus6)
-        avg_timestamp = self._average_timestamps([
+        avg_timestamp = self._average_timestamps(np.array([
             avg_timestamp_mus1,
             avg_timestamp_mus2,
             avg_timestamp_mus3,
             avg_timestamp_mus4,
             avg_timestamp_mus5,
             avg_timestamp_mus6
-        ])
+        ]))
         return avg_timestamp
     
     def find_nbrs(self, input_point_mus1, input_point_mus2, input_point_mus3,
@@ -88,12 +92,15 @@ class NeighbourClassifier:
                nbr_idx_mus4, nbr_idx_mus5, nbr_idx_mus6
 
     def _find_average_timestamp(self, nbr_idx):
-        # TODO
-        return {}
+        # avg_timestamp = dict.fromkeys(self.actions, -1)
+        selected_timestamps = self.timestamps[nbr_idx]
+        average_timestamp = self._average_timestamps(selected_timestamps)
+        return average_timestamp
 
     def _average_timestamps(self, timestamp_sets):  # takes in an array of dictionaries
-        return []
+        return np.mean(timestamp_sets, axis=0)
 
-    def _find_nbr_idx(self, input_point, mus_data):
-        # TODO
-        return []
+    def _find_nbr_idx(self, mus_data, input_point,):
+        nbr_idx = self.neighbour_classifier(np.concatenate((mus_data, input_point)))
+        nbr_idx = nbr_idx[-1][1:] # get the neighbours of the test point, not including itself as the closest
+        return nbr_idx
