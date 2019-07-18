@@ -1,10 +1,10 @@
 import os
 import pandas as pd
+import numpy as np
 from constants import *
 from tslearn.utils import to_time_series_dataset
-from scipy.signal import resample
 
-def _print_whole_df(df):
+def print_whole_df(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         print(df)
 
@@ -78,7 +78,10 @@ def downsample_ts_dict(ts_dict, MUS_key):
     min_len = min([len(knot) for knot in ts_dict[MUS_key]])
     mus_data_downsampled = []
     for knot in ts_dict[MUS_key]:
-        subsample = resample(knot, min_len)
+        # subsample = resample(knot, min_len)
+        x_to_subsample = np.array(range(min_len), dtype='float64')
+        x = np.array(range(len(knot)), dtype='float64')
+        subsample = np.interp(x_to_subsample, x, np.array(knot, dtype='float64'))
         mus_data_downsampled.append(subsample)
     return mus_data_downsampled
 
