@@ -21,8 +21,8 @@ class EMGDataManager:
         self.LAP_ratings = []
         # each of the keys correpsonds to an array of dicts where
         #   each dict is like {ACT1: None, ACT2: None, etc} and corresponds to one knot
-        self.ROB_action_labels = []
-        self.LAP_action_labels = []
+        self.ROB_action_timestamps = []
+        self.LAP_action_timestamps = []
 
         self.row_map = None  # Dataframe of the first four columns of the ratings
         self.actions = []  # array of strings
@@ -33,13 +33,13 @@ class EMGDataManager:
         return self.ROB_datasets
 
     def get_ROB_metadata(self):
-        return self.ROB_datasets_times, self.ROB_ratings, self.ROB_action_labels
+        return self.ROB_datasets_times, self.ROB_ratings, self.ROB_action_timestamps
 
     def get_LAP_data(self):
         return self.LAP_datasets
 
     def get_LAP_metadata(self):
-        return self.LAP_datasets_times, self.LAP_ratings, self.LAP_action_labels
+        return self.LAP_datasets_times, self.LAP_ratings, self.LAP_action_timestamps
 
     def get_ROB_data_downsampled(self):
         return self.ROB_datasets_downsampled
@@ -143,13 +143,16 @@ class EMGDataManager:
         timestamps_df = rectify_time_diff(pd.read_csv(self.path_to_timestamps))
         self._preprocess_actions(timestamps_df)
         self._preprocess_row_map(timestamps_df)
-        timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].to_dict('index')
+        # timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].to_dict('index')
+        timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].as_matrix()
         for timestamp_index in range(len(timestamps_sets)):
             timestamps = timestamps_sets[timestamp_index]
             if self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == ROB:
-                self.ROB_action_labels.append(timestamps)
+                self.ROB_action_timestamps.append(timestamps)
             elif self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == LAP:
-                self.LAP_action_labels.append(timestamps)
+                self.LAP_action_timestamps.append(timestamps)
+        print(self.ROB_action_timestamps)
+        print(self.LAP_action_timestamps)
 
     def _preprocess_actions(self, timestamps_df):
         self.actions = timestamps_df.columns[ROW_MAPPER_CUTOFF_INDEX:]
