@@ -30,22 +30,28 @@ class EMGDataManager:
         self.preprocess()
 
     def get_ROB_data(self):
-        return self.ROB_datasets
+        return self.ROB_datasets[MUS1], self.ROB_datasets[MUS2], self.ROB_datasets[MUS3], \
+               self.ROB_datasets[MUS4], self.ROB_datasets[MUS5], self.ROB_datasets[MUS6],
 
     def get_ROB_metadata(self):
         return self.ROB_datasets_times, self.ROB_ratings, self.ROB_action_timestamps
 
     def get_LAP_data(self):
-        return self.LAP_datasets
+        return self.LAP_datasets[MUS1], self.LAP_datasets[MUS2], self.LAP_datasets[MUS3], \
+               self.LAP_datasets[MUS4], self.LAP_datasets[MUS5], self.LAP_datasets[MUS6],
 
     def get_LAP_metadata(self):
         return self.LAP_datasets_times, self.LAP_ratings, self.LAP_action_timestamps
 
     def get_ROB_data_downsampled(self):
-        return self.ROB_datasets_downsampled
+        return self.ROB_datasets_downsampled[MUS1], self.ROB_datasets_downsampled[MUS2], \
+               self.ROB_datasets_downsampled[MUS3], self.ROB_datasets_downsampled[MUS4], \
+               self.ROB_datasets_downsampled[MUS5], self.ROB_datasets_downsampled[MUS6]
 
     def get_LAP_data_downsampled(self):
-        return self.LAP_datasets_downsampled
+        return self.LAP_datasets_downsampled[MUS1], self.LAP_datasets_downsampled[MUS2], \
+               self.LAP_datasets_downsampled[MUS3],self.LAP_datasets_downsampled[MUS4],\
+               self.LAP_datasets_downsampled[MUS5],self.LAP_datasets_downsampled[MUS6]
 
     def get_row_map(self):
         return self.row_map
