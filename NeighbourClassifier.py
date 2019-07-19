@@ -64,12 +64,12 @@ class NeighbourClassifier:
         nbr_idx_mus1, nbr_idx_mus2, nbr_idx_mus3, \
         nbr_idx_mus4, nbr_idx_mus5, nbr_idx_mus6 = self.find_nbrs(input_point_mus1, input_point_mus2, input_point_mus3,
                                                                   input_point_mus4, input_point_mus5, input_point_mus6)
-        avg_timestamp_mus1 = self.find_average_timestamp(nbr_idx_mus1)
-        avg_timestamp_mus2 = self.find_average_timestamp(nbr_idx_mus2)
-        avg_timestamp_mus3 = self.find_average_timestamp(nbr_idx_mus3)
-        avg_timestamp_mus4 = self.find_average_timestamp(nbr_idx_mus4)
-        avg_timestamp_mus5 = self.find_average_timestamp(nbr_idx_mus5)
-        avg_timestamp_mus6 = self.find_average_timestamp(nbr_idx_mus6)
+        avg_timestamp_mus1 = self._calc_average_timestamp(nbr_idx_mus1)
+        avg_timestamp_mus2 = self._calc_average_timestamp(nbr_idx_mus2)
+        avg_timestamp_mus3 = self._calc_average_timestamp(nbr_idx_mus3)
+        avg_timestamp_mus4 = self._calc_average_timestamp(nbr_idx_mus4)
+        avg_timestamp_mus5 = self._calc_average_timestamp(nbr_idx_mus5)
+        avg_timestamp_mus6 = self._calc_average_timestamp(nbr_idx_mus6)
         avg_timestamp = self._average_timestamps(np.array([
             avg_timestamp_mus1,
             avg_timestamp_mus2,
@@ -91,7 +91,7 @@ class NeighbourClassifier:
         return nbr_idx_mus1, nbr_idx_mus2, nbr_idx_mus3, \
                nbr_idx_mus4, nbr_idx_mus5, nbr_idx_mus6
 
-    def _find_average_timestamp(self, nbr_idx):
+    def _calc_average_timestamp(self, nbr_idx):
         # avg_timestamp = dict.fromkeys(self.actions, -1)
         selected_timestamps = self.timestamps[nbr_idx]
         average_timestamp = self._average_timestamps(selected_timestamps)
