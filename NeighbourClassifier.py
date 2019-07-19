@@ -2,9 +2,8 @@ from copy import deepcopy
 import numpy as np
 
 class NeighbourClassifier:
-    def __init__(self, neighbour_classifier, actions):
-        self.neighbour_classifier = neighbour_classifier
-        self.actions = actions
+    def __init__(self, neighbour_classifier):
+        self.neighbour_classifier = deepcopy(neighbour_classifier)
 
         self.SPLIT_RATIO = 0.8  # % of data used to train the model
         self.split_index = None
@@ -27,7 +26,7 @@ class NeighbourClassifier:
     def load_data(self, input_data_mus1, input_data_mus2, input_data_mus3,
                         input_data_mus4, input_data_mus5, input_data_mus6,
                         timestamps):
-        self.split_index = self.SPLIT_RATIO * len(input_data_mus1)
+        self.split_index = int(round(self.SPLIT_RATIO * len(input_data_mus1)))
         self.mus1_input_data_train = input_data_mus1[:self.split_index]
         self.mus1_input_data_test = input_data_mus1[self.split_index:]
         self.mus2_input_data_train = input_data_mus2[:self.split_index]
@@ -100,7 +99,7 @@ class NeighbourClassifier:
     def _average_timestamps(self, timestamp_sets):  # takes in an array of dictionaries
         return np.mean(timestamp_sets, axis=0)
 
-    def _find_nbr_idx(self, mus_data, input_point,):
-        nbr_idx = self.neighbour_classifier(np.concatenate((mus_data, input_point)))
+    def _find_nbr_idx(self, input_point, mus_data):
+        nbr_idx = self.neighbour_classifier.kneighbors(np.concatenate((mus_data, np.array([input_point]))))
         nbr_idx = nbr_idx[-1][1:] # get the neighbours of the test point, not including itself as the closest
         return nbr_idx

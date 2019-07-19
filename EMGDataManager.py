@@ -157,8 +157,6 @@ class EMGDataManager:
                 self.ROB_action_timestamps.append(timestamps)
             elif self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == LAP:
                 self.LAP_action_timestamps.append(timestamps)
-        print(self.ROB_action_timestamps)
-        print(self.LAP_action_timestamps)
 
     def _preprocess_actions(self, timestamps_df):
         self.actions = timestamps_df.columns[ROW_MAPPER_CUTOFF_INDEX:]
