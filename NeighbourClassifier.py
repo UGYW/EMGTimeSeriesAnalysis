@@ -5,7 +5,7 @@ class NeighbourClassifier:
     def __init__(self, neighbour_classifier):
         self.neighbour_classifier = deepcopy(neighbour_classifier)
 
-        self.SPLIT_RATIO = 0.8  # % of data used to train the model
+        self.SPLIT_RATIO = 0.7  # % of data used to train the model
         self.split_index = None
 
         self.mus1_input_data_train = []
@@ -39,6 +39,8 @@ class NeighbourClassifier:
         self.mus5_input_data_test = input_data_mus5[self.split_index:]
         self.mus6_input_data_train = input_data_mus6[:self.split_index]
         self.mus6_input_data_test = input_data_mus6[self.split_index:]
+
+        self.timestamps = timestamps
 
     def predict(self):
         predicted_timestamps = []
@@ -92,7 +94,7 @@ class NeighbourClassifier:
 
     def _calc_average_timestamp(self, nbr_idx):
         # avg_timestamp = dict.fromkeys(self.actions, -1)
-        selected_timestamps = self.timestamps[nbr_idx]
+        selected_timestamps = np.array(self.timestamps)[nbr_idx]
         average_timestamp = self._average_timestamps(selected_timestamps)
         return average_timestamp
 
@@ -100,6 +102,9 @@ class NeighbourClassifier:
         return np.mean(timestamp_sets, axis=0)
 
     def _find_nbr_idx(self, input_point, mus_data):
-        nbr_idx = self.neighbour_classifier.kneighbors(np.concatenate((mus_data, np.array([input_point]))))
+        # To make it work on 3.6
+        # self.neighbour_classifier.fit(np.concatenate((mus_data, np.array([input_point]))))
+        nbr_idx = self.neighbour_classifier.kneighbors(np.concatenate((mus_data, np.array([input_point]))),
+                                                       return_distance=False)
         nbr_idx = nbr_idx[-1][1:] # get the neighbours of the test point, not including itself as the closest
         return nbr_idx

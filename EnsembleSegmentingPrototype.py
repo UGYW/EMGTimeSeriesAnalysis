@@ -9,7 +9,7 @@ The EnsembleSegmenting task is as follows:
 """
 
 from tslearn.utils import to_time_series_dataset
-from tslearn.neighbors import KNeighborsTimeSeriesClassifier
+from tslearn.neighbors import KNeighborsTimeSeriesClassifier, KNeighborsTimeSeries
 import numpy as np
 
 ACT1 = "ACT1"
@@ -33,7 +33,7 @@ def main():
     X1 = to_time_series_dataset(mock_dataset_muscle1)
     X_train1 = np.array(X1[:-1])
     X_test1 = np.array([X1[-1]])
-    clf1 = KNeighborsTimeSeriesClassifier(n_neighbors=3, metric="dtw")
+    clf1 = KNeighborsTimeSeries(n_neighbors=3, metric="dtw")
 
     # IDENTIFIES THE NEIGHBOURS
     # Makes the row in question always the last row
@@ -58,7 +58,7 @@ def main():
     X2 = to_time_series_dataset(mock_dataset_muscle2)
     X_train2 = np.array(X2[:-1])
     X_test2 = np.array([X2[-1]])
-    clf2 = KNeighborsTimeSeriesClassifier(n_neighbors=5, metric="dtw")
+    clf2 = KNeighborsTimeSeries(n_neighbors=5, metric="dtw")
 
     # IDENTIFIES THE NEIGHBOURS
     # Makes the row in question always the last row

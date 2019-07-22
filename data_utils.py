@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from constants import *
 from tslearn.utils import to_time_series_dataset
+from scipy.signal import argrelextrema
 
 def print_whole_df(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
@@ -25,7 +26,7 @@ def str_to_seconds(timestamp_string):
     return res
 
 def get_file_paths(path_to_main_folder):
-    contents = os.listdir(path_to_main_folder)
+    contents = sorted(os.listdir(path_to_main_folder))
     file_paths = [path_to_main_folder + "/" + i for i in contents if ".txt" in i]
     return file_paths
 
@@ -74,16 +75,36 @@ def extract_mus_data_in_time_range(df, start_time, end_time):
     mus6_data = df_slice.iloc[:, MUS6_INDEX].values
     return mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data
 
-def downsample_ts_dict(ts_dict, MUS_key):
-    min_len = min([len(knot) for knot in ts_dict[MUS_key]])
-    mus_data_downsampled = []
+def downsample_ts_dict(ts_dict, MUS_key, downsampling_divisor=100):
+    mus_data_minmax_only = get_minmax_pts_only(ts_dict, MUS_key)
+    mus_data_downsampled = _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor)
+    return mus_data_downsampled
+
+def get_minmax_pts_only(ts_dict, MUS_key):
+    mus_data_minmax_only = []
     for knot in ts_dict[MUS_key]:
+        # TAKE MINMAX
+        # for local maxima
+        max_inds = argrelextrema(knot.astype(float), np.greater)[0]
+        # for local minima
+        min_inds = argrelextrema(knot.astype(float), np.less)[0]
+        minmax_inds = np.union1d(max_inds, min_inds)
+        mus_data_minmax_only.append(knot[minmax_inds])
+    return mus_data_minmax_only
+
+def _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor=100):
+    min_len = min([len(knot) for knot in mus_data_minmax_only])
+    mus_data_downsampled = []
+    for knot in mus_data_minmax_only:
+        # INTERPOLATE
         # subsample = resample(knot, min_len)
-        x_to_subsample = np.array(range(min_len), dtype='float64')
+        # x_to_subsample = np.array(range(min_len), dtype='float64')
+        x_to_subsample = np.array(range(int(min_len / downsampling_divisor)), dtype='float64')
         x = np.array(range(len(knot)), dtype='float64')
         subsample = np.interp(x_to_subsample, x, np.array(knot, dtype='float64'))
         mus_data_downsampled.append(subsample)
     return mus_data_downsampled
+
 
 def append_mus_data_to_dict(ts_dict,
                             mus1_data, mus2_data, mus3_data,
