@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 from constants import *
 from tslearn.utils import to_time_series_dataset
 from scipy.signal import argrelextrema
@@ -58,9 +59,11 @@ def standardize_col(col, col_i):
 
 def rectify_time_diff(timestamps_df):
     timestamps_df.iloc[:, TIME_DIFF_INDEX] = timestamps_df.iloc[:, TIME_DIFF_INDEX].apply(str_to_seconds)
+    start_time_col = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX].apply(str_to_seconds)
     for column in timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].columns:
         timestamps_df[column] = timestamps_df[column].apply(str_to_seconds)
-        timestamps_df[column] = timestamps_df[column] - timestamps_df.iloc[:, TIME_DIFF_INDEX]
+        # timestamps_df[column] = timestamps_df[column] - time_diff_col
+        timestamps_df[column] = timestamps_df[column] - start_time_col
     return timestamps_df
 
 def extract_mus_data_in_time_range(df, start_time, end_time):

@@ -102,6 +102,7 @@ class NeighbourClassifier:
         return np.mean(timestamp_sets, axis=0)
 
     def _find_nbr_idx(self, input_point, mus_data):
+        # TODO: other methods for finding neighbours can be added here
         # To make it work on 3.6
         # self.neighbour_classifier.fit(np.concatenate((mus_data, np.array([input_point]))))
         nbr_idx = self.neighbour_classifier.kneighbors(np.concatenate((mus_data, np.array([input_point]))),
