@@ -10,12 +10,42 @@ The EnsembleRating task is as follows:
 """
 
 from Model import Model
+from EMGDataManager import EMGDataManager
+from tslearn.clustering import GlobalAlignmentKernelKMeans
+from tslearn.neighbors import KNeighborsTimeSeriesClassifier
+from tslearn.clustering import TimeSeriesKMeans  # currently used
+from sklearn.linear_model import SGDRegressor
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 PATH_TO_DATA = "./data_sample/"
+PATH_TO_ACTION_LABELS = "./data_sample/sample_action_labels.csv"
 PATH_TO_RATINGS = "./data_sample/sample_ratings.csv"
 
 def main():
-    pass
+    dm = EMGDataManager(PATH_TO_DATA,
+                        path_to_timestamps=PATH_TO_ACTION_LABELS, path_to_ratings=PATH_TO_RATINGS,
+                        downsampler=True)
+
+    indv_model = TimeSeriesKMeans(metric="dtw")
+    # indv_model = KNeighborsTimeSeriesClassifier(metric="dtw")
+    ensm_model = SGDRegressor()
+
+    # LOADING DATA
+    # uses lap data as an example
+    lap_model = Model(indv_model, ensm_model)
+    lap_data_mus1, lap_data_mus2, lap_data_mus3, lap_data_mus4, lap_data_mus5, lap_data_mus6 = \
+        dm.get_LAP_data_downsampled()
+    times, ratings, _ = dm.get_LAP_metadata()
+    lap_model.load_data(lap_data_mus1, lap_data_mus2, lap_data_mus3,
+                        lap_data_mus4, lap_data_mus5, lap_data_mus6,
+                        ratings, times)
+    lap_model.load_svr_models()
+    lap_model.fit()
+
+    pred = lap_model.predict()
+    print(pred)
 
 if __name__ == '__main__':
     main()

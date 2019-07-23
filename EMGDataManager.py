@@ -67,7 +67,7 @@ class EMGDataManager:
         self._preprocess_data_files(get_file_paths(self.path_to_main_folder))
         if self.downsampler_active:
             self._make_downsampled_datasets()
-        self._convert_datasets_to_time_series()
+        # self._convert_datasets_to_time_series()
 
         # RATINGS
         if self.path_to_ratings is not None:

@@ -1,11 +1,12 @@
 """ Abstraction of models used for analysis"""
 from copy import deepcopy
 import numpy as np
+from tslearn.svm import TimeSeriesSVR
 
 class Model:
     def __init__(self, individual_model, ensemble_model):
-        self.individual_model = individual_model
-        self.ensemble_model = ensemble_model
+        self.individual_model = deepcopy(individual_model)
+        self.ensemble_model = deepcopy(ensemble_model)
         self.mus1_model = deepcopy(self.individual_model)
         self.mus2_model = deepcopy(self.individual_model)
         self.mus3_model = deepcopy(self.individual_model)
@@ -45,6 +46,8 @@ class Model:
         self.times_interm = None
         self.times_test = None
 
+        self.data_loaded = False
+
     def get_label_train(self):
         return self.label_train
 
@@ -57,9 +60,21 @@ class Model:
     def load_data(self, input_data_mus1, input_data_mus2, input_data_mus3,
                   input_data_mus4, input_data_mus5, input_data_mus6,
                   labels, times):
+        self.data_loaded = True
         self._load_input_data(input_data_mus1, input_data_mus2, input_data_mus3, input_data_mus4, input_data_mus5, input_data_mus6)
         self._load_labels(labels)
         self._load_times(times)
+
+    def load_svr_models(self):
+        # THIS OVERWRITES WHAT WAS PREVIOUSLY IN THESE MODELS!
+        if not self.data_loaded:
+            raise Exception("Must have loaded all the data first.")
+        self.mus1_model = TimeSeriesSVR(sz=len(self.mus1_input_data_train[0]), d=1, verbose=True)
+        self.mus2_model = TimeSeriesSVR(sz=len(self.mus2_input_data_train[0]), d=1, verbose=True)
+        self.mus3_model = TimeSeriesSVR(sz=len(self.mus3_input_data_train[0]), d=1, verbose=True)
+        self.mus4_model = TimeSeriesSVR(sz=len(self.mus4_input_data_train[0]), d=1, verbose=True)
+        self.mus5_model = TimeSeriesSVR(sz=len(self.mus5_input_data_train[0]), d=1, verbose=True)
+        self.mus6_model = TimeSeriesSVR(sz=len(self.mus6_input_data_train[0]), d=1, verbose=True)
 
     def _load_input_data(self, input_data_mus1, input_data_mus2, input_data_mus3, input_data_mus4, input_data_mus5, input_data_mus6):
         if self.split_train_index == -1 or self.split_interm_index == -1:
@@ -91,7 +106,8 @@ class Model:
         self._fit_individual_models()
         interm_pred = self._calc_interm_pred(self.mus1_input_data_interm, self.mus2_input_data_interm,
                                              self.mus3_input_data_interm, self.mus4_input_data_interm,
-                                             self.mus5_input_data_interm, self.mus6_input_data_interm)
+                                             self.mus5_input_data_interm, self.mus6_input_data_interm,
+                                             self.times_interm)
         interm_labels = self.label_interm
         self.ensemble_model.fit(interm_pred, interm_labels)
 
@@ -99,12 +115,13 @@ class Model:
     def predict(self):
         interm_pred = self._calc_interm_pred(self.mus1_input_data_test, self.mus2_input_data_test,
                                              self.mus3_input_data_test, self.mus4_input_data_test,
-                                             self.mus5_input_data_test, self.mus6_input_data_test)
+                                             self.mus5_input_data_test, self.mus6_input_data_test,
+                                             self.times_test)
         return self.ensemble_model.predict(interm_pred)
 
     def _calc_input_data_split(self, input_data_len):
         self.split_train_index = int(self.SPLIT_RATIO[0] * input_data_len)
-        self.split_interm_index = int(self.SPLIT_RATIO[1] * input_data_len)
+        self.split_interm_index = self.split_train_index + int(self.SPLIT_RATIO[1] * input_data_len)
 
     def _load_input_data_mus1(self, input_data):
         self.mus1_input_data_train = input_data[: self.split_train_index]
@@ -145,7 +162,7 @@ class Model:
         self.mus6_model.fit(self.mus6_input_data_train, self.label_train)
 
     def _calc_interm_pred(self, mus1_data_interm, mus2_data_interm, mus3_data_interm,
-                          mus4_data_interm, mus5_data_interm, mus6_data_interm):
+                          mus4_data_interm, mus5_data_interm, mus6_data_interm, times):
         interm_pred1 = self.mus1_model.predict(mus1_data_interm)
         interm_pred2 = self.mus2_model.predict(mus2_data_interm)
         interm_pred3 = self.mus3_model.predict(mus3_data_interm)
@@ -159,5 +176,5 @@ class Model:
                                 interm_pred4,
                                 interm_pred5,
                                 interm_pred6,
-                                self.times_interm)).transpose()
+                                times)).transpose()
         return interm_pred
