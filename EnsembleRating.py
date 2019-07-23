@@ -11,10 +11,8 @@ The EnsembleRating task is as follows:
 
 from Model import Model
 from EMGDataManager import EMGDataManager
-from tslearn.clustering import GlobalAlignmentKernelKMeans
-from tslearn.neighbors import KNeighborsTimeSeriesClassifier
 from tslearn.clustering import TimeSeriesKMeans  # currently used
-from sklearn.linear_model import SGDRegressor
+from sklearn.linear_model import SGDRegressor, LinearRegression
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -30,7 +28,7 @@ def main():
 
     indv_model = TimeSeriesKMeans(metric="dtw")
     # indv_model = KNeighborsTimeSeriesClassifier(metric="dtw")
-    ensm_model = SGDRegressor()
+    ensm_model = LinearRegression()
 
     # LOADING DATA
     # uses lap data as an example
