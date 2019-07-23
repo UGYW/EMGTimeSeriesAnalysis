@@ -2,10 +2,10 @@ from data_utils import *
 import logging
 
 class EMGDataManager:
-    def __init__(self, path_to_main_folder, path_to_timestamps, path_to_ratings=None, downsampler=False):
+    def __init__(self, path_to_main_folder, path_to_timestamps, path_to_ratings=None, downsampler=True):
         self.path_to_main_folder = path_to_main_folder
         self.path_to_timestamps = path_to_timestamps
-        # TODO: path to ratings not implemented rn
+        self.path_to_ratings = path_to_ratings
 
         self.downsampler_active = downsampler  # determines whether or not to init downsampling
 
@@ -70,7 +70,29 @@ class EMGDataManager:
         self._convert_datasets_to_time_series()
 
         # RATINGS
-        #     TODO
+        if self.path_to_ratings is not None:
+            self.preprocess_ratings()
+
+    def _preprocess_timestamps(self):
+        timestamps_df = rectify_time_diff(pd.read_csv(self.path_to_timestamps))
+        self._preprocess_actions(timestamps_df)
+        self._preprocess_row_map(timestamps_df)
+        # timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].to_dict('index')
+        timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].as_matrix()
+        for timestamp_index in range(len(timestamps_sets)):
+            timestamps = timestamps_sets[timestamp_index]
+            if self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == ROB:
+                self.ROB_action_timestamps.append(timestamps)
+            elif self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == LAP:
+                self.LAP_action_timestamps.append(timestamps)
+
+    def _preprocess_actions(self, timestamps_df):
+        self.actions = timestamps_df.columns[ROW_MAPPER_CUTOFF_INDEX:]
+
+    def _preprocess_row_map(self, timestamps_df):
+        self.row_map = timestamps_df.iloc[:, ROW_MAPPER_INDICES]  # gets the first four columns
+        self.row_map.iloc[:, START_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX:].apply(np.min, axis=1)
+        self.row_map.iloc[:, END_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX:].apply(np.max, axis=1)
 
     def _preprocess_data_files(self, data_file_paths):
         data_index = 0
@@ -145,26 +167,18 @@ class EMGDataManager:
             df[df.columns[col_i]] = col
             return df
 
-    def _preprocess_timestamps(self):
-        timestamps_df = rectify_time_diff(pd.read_csv(self.path_to_timestamps))
-        self._preprocess_actions(timestamps_df)
-        self._preprocess_row_map(timestamps_df)
-        # timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].to_dict('index')
-        timestamps_sets = timestamps_df.iloc[:, ROW_MAPPER_CUTOFF_INDEX:].as_matrix()
-        for timestamp_index in range(len(timestamps_sets)):
-            timestamps = timestamps_sets[timestamp_index]
-            if self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == ROB:
-                self.ROB_action_timestamps.append(timestamps)
-            elif self.row_map.iloc[timestamp_index][KNOT_TYPE_INDEX] == LAP:
-                self.LAP_action_timestamps.append(timestamps)
-
-    def _preprocess_actions(self, timestamps_df):
-        self.actions = timestamps_df.columns[ROW_MAPPER_CUTOFF_INDEX:]
-
-    def _preprocess_row_map(self, timestamps_df):
-        self.row_map = timestamps_df.iloc[:, ROW_MAPPER_INDICES]  # gets the first four columns
-        self.row_map.iloc[:, START_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX:].apply(np.min, axis=1)
-        self.row_map.iloc[:, END_TIME_INDEX] = timestamps_df.iloc[:, START_TIME_INDEX:].apply(np.max, axis=1)
+    def preprocess_ratings(self):
+        ratings_df = pd.read_csv(self.path_to_ratings)
+        rob_or_laps = ratings_df.iloc[:, RATING_ROB_OR_LAP_INDEX].values
+        ratings = ratings_df.iloc[:, RATING_INDEX].values
+        assert len(rob_or_laps) == len(ratings)
+        for i in range(len(rob_or_laps)):
+            if rob_or_laps[i] == ROB:
+                self.ROB_ratings.append(ratings[i])
+            elif rob_or_laps[i] == LAP:
+                self.LAP_ratings.append(ratings[i])
+            else:
+                raise Exception("Knot Type " + rob_or_laps[i] + " is not " + ROB + " or " + LAP)
 
     def load_datasets(self, ROB_dataset, LAP_dataset, data_index,
                             mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data,

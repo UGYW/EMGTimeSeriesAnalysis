@@ -14,12 +14,18 @@ CODE_INDEX = 0
 KNOT_TYPE_INDEX = 1
 TIME_DIFF_INDEX = 3
 ROW_MAPPER_CUTOFF_INDEX = 4  # NON-inclusive
+
+# Timestamps
 START_TIME_INDEX = 4
 END_TIME_INDEX = 5
 ROW_MAPPER_INDICES = [0,1,2,3,4,20]  # the last two are start and end
-# Timestamps
+
 # General
 COLUMNS_USED = [0, 2, 3, 4, 5, 6, 7]
+
+# Ratings
+RATING_ROB_OR_LAP_INDEX = 1
+RATING_INDEX = 3
 
 MUS1 = "MUS1"
 MUS2 = "MUS2"
