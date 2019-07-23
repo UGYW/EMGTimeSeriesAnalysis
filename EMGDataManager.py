@@ -170,7 +170,7 @@ class EMGDataManager:
     def preprocess_ratings(self):
         ratings_df = pd.read_csv(self.path_to_ratings)
         rob_or_laps = ratings_df.iloc[:, RATING_ROB_OR_LAP_INDEX].values
-        ratings = ratings_df.iloc[:, RATING_INDEX].values
+        ratings = pd.to_numeric(ratings_df.iloc[:, RATING_INDEX].values)
         assert len(rob_or_laps) == len(ratings)
         for i in range(len(rob_or_laps)):
             if rob_or_laps[i] == ROB:
