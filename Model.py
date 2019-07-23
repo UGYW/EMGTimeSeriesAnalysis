@@ -69,12 +69,12 @@ class Model:
         # THIS OVERWRITES WHAT WAS PREVIOUSLY IN THESE MODELS!
         if not self.data_loaded:
             raise Exception("Must have loaded all the data first.")
-        self.mus1_model = TimeSeriesSVR(sz=len(self.mus1_input_data_train[0]), d=1, verbose=True)
-        self.mus2_model = TimeSeriesSVR(sz=len(self.mus2_input_data_train[0]), d=1, verbose=True)
-        self.mus3_model = TimeSeriesSVR(sz=len(self.mus3_input_data_train[0]), d=1, verbose=True)
-        self.mus4_model = TimeSeriesSVR(sz=len(self.mus4_input_data_train[0]), d=1, verbose=True)
-        self.mus5_model = TimeSeriesSVR(sz=len(self.mus5_input_data_train[0]), d=1, verbose=True)
-        self.mus6_model = TimeSeriesSVR(sz=len(self.mus6_input_data_train[0]), d=1, verbose=True)
+        self.mus1_model = TimeSeriesSVR(sz=len(self.mus1_input_data_train[0]), d=1)
+        self.mus2_model = TimeSeriesSVR(sz=len(self.mus2_input_data_train[0]), d=1)
+        self.mus3_model = TimeSeriesSVR(sz=len(self.mus3_input_data_train[0]), d=1)
+        self.mus4_model = TimeSeriesSVR(sz=len(self.mus4_input_data_train[0]), d=1)
+        self.mus5_model = TimeSeriesSVR(sz=len(self.mus5_input_data_train[0]), d=1)
+        self.mus6_model = TimeSeriesSVR(sz=len(self.mus6_input_data_train[0]), d=1)
 
     def _load_input_data(self, input_data_mus1, input_data_mus2, input_data_mus3, input_data_mus4, input_data_mus5, input_data_mus6):
         if self.split_train_index == -1 or self.split_interm_index == -1:

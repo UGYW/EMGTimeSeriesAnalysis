@@ -43,7 +43,10 @@ def main():
     lap_model.fit()
 
     pred = lap_model.predict()
+    print("Prediction")
     print(pred)
+    print("Actual")
+    print(lap_model.get_label_test())
 
 if __name__ == '__main__':
     main()
