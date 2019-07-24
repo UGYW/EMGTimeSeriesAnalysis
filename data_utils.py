@@ -78,7 +78,7 @@ def extract_mus_data_in_time_range(df, start_time, end_time):
     mus6_data = df_slice.iloc[:, MUS6_INDEX].values
     return mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data
 
-def downsample_ts_dict(ts_dict, MUS_key, downsampling_divisor=100):
+def downsample_ts_dict(ts_dict, MUS_key, downsampling_divisor=DOWNSAMPLING_DIVISOR):
     mus_data_minmax_only = get_minmax_pts_only(ts_dict, MUS_key)
     mus_data_downsampled = _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor)
     return mus_data_downsampled
@@ -94,8 +94,9 @@ def get_minmax_pts_only(ts_dict, MUS_key):
         minmax_inds = np.union1d(max_inds, min_inds)
         mus_data_minmax_only.append(knot[minmax_inds])
     return mus_data_minmax_only
+    # return ts_dict[MUS_key]
 
-def _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor=100):
+def _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor=10):
     min_len = min([len(knot) for knot in mus_data_minmax_only])
     mus_data_downsampled = []
     for knot in mus_data_minmax_only:

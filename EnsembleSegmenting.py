@@ -21,7 +21,7 @@ N_NEIGHBOURS = 3
 
 def main():
     dm = EMGDataManager(PATH_TO_DATA, path_to_timestamps=PATH_TO_ACTION_LABELS, downsampler=True)
-    clf = KNeighborsTimeSeriesClassifier(n_neighbors=N_NEIGHBOURS, metric="dtw")
+    clf = KNeighborsTimeSeriesClassifier(n_neighbors=N_NEIGHBOURS, metric="dtw", d=1)
     nbr_clf_rob = NeighbourClassifier(clf)
 
     # LOADING DATA

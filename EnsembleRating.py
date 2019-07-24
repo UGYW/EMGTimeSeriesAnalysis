@@ -11,8 +11,8 @@ The EnsembleRating task is as follows:
 
 from Model import Model
 from EMGDataManager import EMGDataManager
-from tslearn.clustering import TimeSeriesKMeans  # currently used
-from sklearn.linear_model import SGDRegressor, LinearRegression
+from tslearn.clustering import TimeSeriesKMeans # used as placeholder
+from sklearn.linear_model import LinearRegression
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -26,8 +26,7 @@ def main():
                         path_to_timestamps=PATH_TO_ACTION_LABELS, path_to_ratings=PATH_TO_RATINGS,
                         downsampler=True)
 
-    indv_model = TimeSeriesKMeans(metric="dtw")
-    # indv_model = KNeighborsTimeSeriesClassifier(metric="dtw")
+    indv_model = None  # the svr model is set later on because it depends on data len
     ensm_model = LinearRegression()
 
     # LOADING DATA
@@ -43,10 +42,28 @@ def main():
     lap_model.fit()
 
     pred = lap_model.predict()
-    print("Prediction")
+    print("LAP Prediction")
     print(pred)
-    print("Actual")
+    print("LAP Actual")
     print(lap_model.get_label_test())
+
+    print("\n")
+
+    rob_model = Model(indv_model, ensm_model)
+    rob_data_mus1, rob_data_mus2, rob_data_mus3, rob_data_mus4, rob_data_mus5, rob_data_mus6 = \
+        dm.get_ROB_data_downsampled()
+    times, ratings, _ = dm.get_ROB_metadata()
+    rob_model.load_data(rob_data_mus1, rob_data_mus2, rob_data_mus3,
+                        rob_data_mus4, rob_data_mus5, rob_data_mus6,
+                        ratings, times)
+    rob_model.load_svr_models()
+    rob_model.fit()
+
+    pred = rob_model.predict()
+    print("ROB Prediction")
+    print(pred)
+    print("ROB Actual")
+    print(rob_model.get_label_test())
 
 if __name__ == '__main__':
     main()
