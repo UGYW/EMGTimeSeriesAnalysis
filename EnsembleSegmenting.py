@@ -34,9 +34,27 @@ def main():
                           timestamps)
 
     # PREDICTIONS
+    print("ROB Prediction")
     predictions = nbr_clf_rob.predict()
+    print("ROB Actual")
     actual = nbr_clf_rob.get_test_timestamps()
+
     print(predictions)
+    print(actual)
+
+    lap_data_mus1, lap_data_mus2, lap_data_mus3, lap_data_mus4, lap_data_mus5, lap_data_mus6 = \
+        dm.get_LAP_data_downsampled()
+    _, _, timestamps = dm.get_LAP_metadata()
+    nbr_clf_lap.load_data(lap_data_mus1, lap_data_mus2, lap_data_mus3,
+                          lap_data_mus4, lap_data_mus5, lap_data_mus6,
+                          timestamps)
+
+    # PREDICTIONS
+    predictions = nbr_clf_lap.predict()
+    actual = nbr_clf_lap.get_test_timestamps()
+    print("LAP Prediction")
+    print(predictions)
+    print("LAP Actual")
     print(actual)
 
 if __name__ == '__main__':
