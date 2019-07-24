@@ -42,6 +42,8 @@ class Model:
         self.label_interm = None
         self.label_test = None
 
+        self.prediction = None
+
         # times are not used in the initial training phase due to dtw
         self.times_interm = None
         self.times_test = None
@@ -117,7 +119,16 @@ class Model:
                                              self.mus3_input_data_test, self.mus4_input_data_test,
                                              self.mus5_input_data_test, self.mus6_input_data_test,
                                              self.times_test)
-        return self.ensemble_model.predict(interm_pred)
+        self.prediction = self.ensemble_model.predict(interm_pred)
+        return self.prediction
+
+    def score(self):
+        if self.prediction is not None:
+            prediction = self.prediction
+        else:
+            prediction = self.predict()
+        diff = np.abs(prediction - self.label_test)
+        return diff
 
     def _calc_input_data_split(self, input_data_len):
         self.split_train_index = int(self.SPLIT_RATIO[0] * input_data_len)

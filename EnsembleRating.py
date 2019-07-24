@@ -11,7 +11,6 @@ The EnsembleRating task is as follows:
 
 from Model import Model
 from EMGDataManager import EMGDataManager
-from tslearn.clustering import TimeSeriesKMeans # used as placeholder
 from sklearn.linear_model import LinearRegression
 
 import logging
@@ -46,6 +45,11 @@ def main():
     print(pred)
     print("LAP Actual")
     print(lap_model.get_label_test())
+    diff = lap_model.score()
+    print("LAP Difference")
+    print(diff)
+    print("LAP Diff Total")
+    print(sum(diff))
 
     print("\n")
 
@@ -64,6 +68,11 @@ def main():
     print(pred)
     print("ROB Actual")
     print(rob_model.get_label_test())
+    diff = rob_model.score()
+    print("ROB Difference")
+    print(diff)
+    print("ROB Diff Total")
+    print(sum(diff))
 
 if __name__ == '__main__':
     main()
