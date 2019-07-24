@@ -11,19 +11,19 @@ def print_whole_df(df):
         print(df)
 
 def str_to_seconds(timestamp_string):
-    if type(timestamp_string) != str:
+    if type(timestamp_string) != str and type(timestamp_string) != float and type(timestamp_string) != int:
         timestamp_string = timestamp_string.values[0]  # in case of using numpy apply
     res = -1
-    if len(timestamp_string) <= 2:  # case '-1'
+    if type(timestamp_string) == float or type(timestamp_string) == int or len(timestamp_string) <= 2:  # case '-1'
         pass
     elif len(timestamp_string) == 5:  # case 'MM:SS'
         m, s = timestamp_string.split(":")
         res = int(m) * 60 + int(s)
-    elif len(timestamp_string) == 7:  # case 'MM:SS:MSMS'
+    elif len(timestamp_string) == 8:  # case 'MM:SS:MSMS'
         m, s, _ = timestamp_string.split(":")
         res = int(m) * 60 + int(s)
     else:
-        res = float(timestamp_string)
+        res = np.nan
     return res
 
 def get_file_paths(path_to_main_folder):
@@ -92,7 +92,10 @@ def get_minmax_pts_only(ts_dict, MUS_key):
         # for local minima
         min_inds = argrelextrema(knot.astype(float), np.less)[0]
         minmax_inds = np.union1d(max_inds, min_inds)
-        mus_data_minmax_only.append(knot[minmax_inds])
+        if len(minmax_inds) > 0:
+            mus_data_minmax_only.append(knot[minmax_inds])
+        else:
+            mus_data_minmax_only.append(knot)
     return mus_data_minmax_only
     # return ts_dict[MUS_key]
 
