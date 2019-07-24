@@ -23,6 +23,7 @@ def main():
     dm = EMGDataManager(PATH_TO_DATA, path_to_timestamps=PATH_TO_ACTION_LABELS, downsampler=True)
     clf = KNeighborsTimeSeriesClassifier(n_neighbors=N_NEIGHBOURS, metric="dtw", d=1)
     nbr_clf_rob = NeighbourClassifier(clf)
+    nbr_clf_lap = NeighbourClassifier(clf)
 
     # LOADING DATA
     # we can only use downsampled data here
@@ -34,12 +35,12 @@ def main():
                           timestamps)
 
     # PREDICTIONS
-    print("ROB Prediction")
     predictions = nbr_clf_rob.predict()
-    print("ROB Actual")
     actual = nbr_clf_rob.get_test_timestamps()
 
+    print("ROB Prediction")
     print(predictions)
+    print("ROB Actual")
     print(actual)
 
     lap_data_mus1, lap_data_mus2, lap_data_mus3, lap_data_mus4, lap_data_mus5, lap_data_mus6 = \
