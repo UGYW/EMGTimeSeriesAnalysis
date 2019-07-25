@@ -79,39 +79,42 @@ def extract_mus_data_in_time_range(df, start_time, end_time):
     return mus1_data, mus2_data, mus3_data, mus4_data, mus5_data, mus6_data
 
 def downsample_ts_dict(ts_dict, MUS_key, downsampling_divisor=DOWNSAMPLING_DIVISOR):
-    mus_data_minmax_only = get_minmax_pts_only(ts_dict, MUS_key)
-    mus_data_downsampled = _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor)
+    # mus_data = get_minmax_pts_only(ts_dict, MUS_key)
+    mus_data = ts_dict[MUS_key]
+    mus_data_downsampled = _downsample_to_min_len(mus_data, downsampling_divisor)
     return mus_data_downsampled
 
-def get_minmax_pts_only(ts_dict, MUS_key):
-    mus_data_minmax_only = []
-    for knot in ts_dict[MUS_key]:
-        # TAKE MINMAX
-        # for local maxima
-        max_inds = argrelextrema(knot.astype(float), np.greater)[0]
-        # for local minima
-        min_inds = argrelextrema(knot.astype(float), np.less)[0]
-        minmax_inds = np.union1d(max_inds, min_inds)
-        if len(minmax_inds) > 0:
-            mus_data_minmax_only.append(knot[minmax_inds])
-        else:
-            mus_data_minmax_only.append(knot)
-    return mus_data_minmax_only
+# def get_minmax_pts_only(ts_dict, MUS_key):
+    # mus_data = []
+    # for knot in ts_dict[MUS_key]:
+    #     # TAKE MINMAX
+    #     # for local maxima
+    #     max_inds = argrelextrema(knot.astype(float), np.greater)[0]
+    #     # for local minima
+    #     min_inds = argrelextrema(knot.astype(float), np.less)[0]
+    #     minmax_inds = np.union1d(max_inds, min_inds)
+    #     if len(minmax_inds) > 0:
+    #         mus_data.append(knot[minmax_inds])
+    #     else:
+    #         mus_data.append(knot)
+    # return mus_data
     # return ts_dict[MUS_key]
 
-def _downsample_to_min_len(mus_data_minmax_only, downsampling_divisor=10):
-    min_len = min([len(knot) for knot in mus_data_minmax_only])
+def _downsample_to_min_len(mus_data, downsampling_divisor=DOWNSAMPLING_DIVISOR):
+    min_len = min([len(knot) for knot in mus_data])
     mus_data_downsampled = []
-    for knot in mus_data_minmax_only:
-        # INTERPOLATE
-        # subsample = resample(knot, min_len)
-        # x_to_subsample = np.array(range(min_len), dtype='float64')
-        x_to_subsample = np.array(range(int(min_len / downsampling_divisor)), dtype='float64')
+    for knot in mus_data:
+        x_to_subsample = np.array(range(0, len(knot), int(len(knot)/min_len*downsampling_divisor)), dtype='float64')
         x = np.array(range(len(knot)), dtype='float64')
         subsample = np.interp(x_to_subsample, x, np.array(knot, dtype='float64'))
+        subsample = fillna_numpy_array(subsample)
         mus_data_downsampled.append(subsample)
     return mus_data_downsampled
 
+def fillna_numpy_array(subsample):
+    subsample_df = pd.DataFrame(subsample).fillna(method="ffill")
+    subsample = subsample_df.iloc[:, 0].values
+    return subsample
 
 def append_mus_data_to_dict(ts_dict,
                             mus1_data, mus2_data, mus3_data,
@@ -124,9 +127,9 @@ def append_mus_data_to_dict(ts_dict,
     ts_dict[MUS6].append(mus6_data)
 
 def convert_mus_data_to_time_series(ts_dict):
-    ts_dict[MUS1] = to_time_series_dataset(ts_dict[MUS1])
-    ts_dict[MUS2] = to_time_series_dataset(ts_dict[MUS2])
-    ts_dict[MUS3] = to_time_series_dataset(ts_dict[MUS3])
-    ts_dict[MUS4] = to_time_series_dataset(ts_dict[MUS4])
-    ts_dict[MUS5] = to_time_series_dataset(ts_dict[MUS5])
-    ts_dict[MUS6] = to_time_series_dataset(ts_dict[MUS6])
+    ts_dict[MUS1] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS1]))
+    ts_dict[MUS2] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS2]))
+    ts_dict[MUS3] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS3]))
+    ts_dict[MUS4] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS4]))
+    ts_dict[MUS5] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS5]))
+    ts_dict[MUS6] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS6]))
