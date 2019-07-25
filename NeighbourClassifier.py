@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+import logging
 
 class NeighbourClassifier:
     def __init__(self, neighbour_classifier):
@@ -83,11 +84,17 @@ class NeighbourClassifier:
     
     def find_nbrs(self, input_point_mus1, input_point_mus2, input_point_mus3,
                         input_point_mus4, input_point_mus5, input_point_mus6):
+        logging.debug("FINDING NEIGHBOURS IN MUS1")
         nbr_idx_mus1 = self._find_nbr_idx(input_point_mus1, self.mus1_input_data_train)
+        logging.debug("FINDING NEIGHBOURS IN MUS2")
         nbr_idx_mus2 = self._find_nbr_idx(input_point_mus2, self.mus2_input_data_train)
+        logging.debug("FINDING NEIGHBOURS IN MUS3")
         nbr_idx_mus3 = self._find_nbr_idx(input_point_mus3, self.mus3_input_data_train)
+        logging.debug("FINDING NEIGHBOURS IN MUS4")
         nbr_idx_mus4 = self._find_nbr_idx(input_point_mus4, self.mus4_input_data_train)
+        logging.debug("FINDING NEIGHBOURS IN MUS5")
         nbr_idx_mus5 = self._find_nbr_idx(input_point_mus5, self.mus5_input_data_train)
+        logging.debug("FINDING NEIGHBOURS IN MUS6")
         nbr_idx_mus6 = self._find_nbr_idx(input_point_mus6, self.mus6_input_data_train)
         return nbr_idx_mus1, nbr_idx_mus2, nbr_idx_mus3, \
                nbr_idx_mus4, nbr_idx_mus5, nbr_idx_mus6

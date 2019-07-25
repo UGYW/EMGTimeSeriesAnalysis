@@ -2,6 +2,7 @@
 from copy import deepcopy
 import numpy as np
 from tslearn.svm import TimeSeriesSVR
+import logging
 
 class Model:
     def __init__(self, individual_model, ensemble_model):
@@ -111,6 +112,7 @@ class Model:
                                              self.mus5_input_data_interm, self.mus6_input_data_interm,
                                              self.times_interm)
         interm_labels = self.label_interm
+        logging.debug("FITTING ENSEMBLE MODEL")
         self.ensemble_model.fit(interm_pred, interm_labels)
 
     # Predict for ensemble using test data
@@ -165,11 +167,17 @@ class Model:
         self.mus6_input_data_test = input_data[self.split_interm_index : ]
 
     def _fit_individual_models(self):
+        logging.debug("FITTING MODEL ON MUS1")
         self.mus1_model.fit(self.mus1_input_data_train, self.label_train)
+        logging.debug("FITTING MODEL ON MUS2")
         self.mus2_model.fit(self.mus2_input_data_train, self.label_train)
+        logging.debug("FITTING MODEL ON MUS3")
         self.mus3_model.fit(self.mus3_input_data_train, self.label_train)
+        logging.debug("FITTING MODEL ON MUS4")
         self.mus4_model.fit(self.mus4_input_data_train, self.label_train)
+        logging.debug("FITTING MODEL ON MUS5")
         self.mus5_model.fit(self.mus5_input_data_train, self.label_train)
+        logging.debug("FITTING MODEL ON MUS6")
         self.mus6_model.fit(self.mus6_input_data_train, self.label_train)
 
     def _calc_interm_pred(self, mus1_data_interm, mus2_data_interm, mus3_data_interm,
