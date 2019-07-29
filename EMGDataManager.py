@@ -73,6 +73,8 @@ class EMGDataManager:
         if self.path_to_ratings is not None:
             self.preprocess_ratings()
 
+        self.shuffle_data()
+
     def _preprocess_timestamps(self):
         timestamps_df = rectify_time_diff(pd.read_csv(self.path_to_timestamps))
         self._preprocess_actions(timestamps_df)
@@ -202,3 +204,9 @@ class EMGDataManager:
         pass_index = df.iloc[:, TIMESTAMP_INDEX].searchsorted(time_diff)[0]
         df = df.iloc[pass_index:]
         return df
+
+    def shuffle_data(self):
+        self.LAP_action_timestamps, self.LAP_datasets, self.LAP_ratings = \
+            shuffle_data_general(self.LAP_action_timestamps, self.LAP_datasets, self.LAP_ratings)
+        self.ROB_action_timestamps, self.ROB_datasets, self.ROB_ratings = \
+            shuffle_data_general(self.ROB_action_timestamps, self.ROB_datasets, self.ROB_ratings)

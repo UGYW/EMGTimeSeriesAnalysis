@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-from copy import deepcopy
+import random
 from constants import *
 from tslearn.utils import to_time_series_dataset
 from scipy.signal import argrelextrema
@@ -133,3 +133,23 @@ def convert_mus_data_to_time_series(ts_dict):
     ts_dict[MUS4] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS4]))
     ts_dict[MUS5] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS5]))
     ts_dict[MUS6] = np.nan_to_num(to_time_series_dataset(ts_dict[MUS6]))
+
+def shuffle_data_general(timestamps, data, ratings=[]):
+    shuffled_order = list(range(len(timestamps)))
+    random.seed(30)
+    random.shuffle(shuffled_order)
+    shuff_ts = [timestamps[i] for i in shuffled_order]
+
+    shuff_ratings = ratings
+    if len(ratings) > 0:
+        shuff_ratings = [ratings[i] for i in shuffled_order]
+
+    shuff_data = {}
+    shuff_data[MUS1] = [data[MUS1][i] for i in shuffled_order]
+    shuff_data[MUS2] = [data[MUS2][i] for i in shuffled_order]
+    shuff_data[MUS3] = [data[MUS3][i] for i in shuffled_order]
+    shuff_data[MUS4] = [data[MUS4][i] for i in shuffled_order]
+    shuff_data[MUS5] = [data[MUS5][i] for i in shuffled_order]
+    shuff_data[MUS6] = [data[MUS6][i] for i in shuffled_order]
+
+    return shuff_ts, shuff_data, shuff_ratings
