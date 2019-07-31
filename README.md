@@ -107,6 +107,17 @@ For example, if Person A and Person B had a similar waveform shape
 but Person B did it at twice the speed,
 it would be erroneous to say that Person A would have similar timestamps than Person B.
 
+Unfortunately, it's also a known issue within tslearn that KNN
+does not work with any other metric.
+
+There is a possible solution in that tslearn is capable of calculating the raw DTW metric between two time series,
+and that may be used to un-warp (e.g indicate that Person B did the knot at twice the speed).
+This is a subtle point and may require more testing.
+
+On the other hand, it wouldn't be completely incorrect to say that
+people who had similar progressions (i.e high DTW similarity)
+probably had similar timestamps as well.
+
 ### Interpreting the Results
 This is what it looks like raw (without formatting).
 ```
