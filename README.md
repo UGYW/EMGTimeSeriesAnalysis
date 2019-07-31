@@ -22,7 +22,7 @@ All the other packages invoked in this project are generally
 already found with the Python distribution by default,
 such as numpy and random.
 
-## Part 1: Ensemble Rating
+## Ensemble Rating
 ### How It Works
 The model pipeline looks like this.
 ```
@@ -88,9 +88,66 @@ LAP Diff Total
 ```
 You can also modify the score function to calculate additional indicators.
 
-## Part 2: Ensemble Segmenting
+## Ensemble Segmenting
 ### How It Works
+Given some time series `t = [t1, t2 ... ]`, we look for a group of other time series
+who are the closest to it.
+
+*The assumption here is that time series that are similar
+will also have similar timestamps.*
+
+We then predict the timestamps of time series `t` to be an average of said group.
+
+#### Known Issue: The Wrong Metric?
+In other words, **using DTW as the metric may be incompatible with said assumption**,
+since we don't know how to un-warp these timestamps.
+
+For example, if Person A and Person B had a similar waveform shape
+(i.e high similarity via DTW),
+but Person B did it at twice the speed,
+it would be erroneous to say that Person A would have similar timestamps than Person B.
+
 ### Interpreting the Results
+This is what it looks like raw (without formatting).
+```
+ROB Prediction
+[array([   0.        ,    7.33333333,   14.33333333,   23.16666667,
+         28.08333333,   30.58333333, -252.75      , -247.5       ,
+         61.08333333,   75.75      ,   87.16666667,   96.66666667,
+        108.33333333,  121.16666667,  128.33333333,  136.91666667,
+        147.16666667]), array([   0.        ,    7.25      ,   14.08333333,   22.91666667,
+         27.91666667,   31.16666667, -253.        , -247.75      ,
+         61.08333333,   75.83333333,   88.16666667,   97.58333333,
+        109.08333333,  121.5       ,  128.33333333,  137.        ,
+        146.83333333])]
+ROB Actual
+[array([  0,   4,   9,  13,  18,  21,  30,  34,  39,  65,  75,  80,  85,
+        96, 103, 112, 116]), array([  0,   4,  11,  16,  21,  26,  35,  43,  47,  59,  73,  80,  98,
+       112, 122, 130, 143])]
+```
+Let's take a look at it in more detail:
+```
+This is the predicted timestamps, where each item represents the timestamp of an action
+[   0.        ,    7.33333333,   14.33333333,   23.16666667,
+         28.08333333,   30.58333333, -252.75      , -247.5       ,
+         61.08333333,   75.75      ,   87.16666667,   96.66666667,
+        108.33333333,  121.16666667,  128.33333333,  136.91666667,
+        147.16666667]
+These are the actual timestamps, in milliseconds as well.
+[  0,   4,   9,  13,  18,  21,  30,  34,  39,  65,  75,  80,  85, 96, 103, 112, 116]
+```
+
+#### Known Issue: Negative Timestamps
+See troubleshooting guide for more details.
+
+## Data Downsampling
+### Why downsample?
+The original data features time series that are over a million data points long.
+This slows down the analysis significantly, especially during ensemble segmenting.
+
+### How is the downsampling done?
+Each time series is interpolated to be the size of the shortest time series
+divided by a factor of 100 or 1000.
 
 ## Troubleshooting
 1. Why is it so slow?
