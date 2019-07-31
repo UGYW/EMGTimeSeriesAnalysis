@@ -1,5 +1,15 @@
 # EMGTimeSeriesAnalysis
-Trains models to identify phases in each EMG Time Series and make rating on the subject's proficiency.
+The project is structured as follows:
+* **Rating Prediction**:
+Given times series and their ratings,
+construct a model that will predict the rating of a given time series.
+* **Timestamp Prediction**:
+Given time series and timestamps for events that occurred in each of these time series,
+construct a model that will predict the timestamps of these events of a given time series.
+
+For each of these models, there are two data categories available - ROB and LAP.
+They are structured exactly the same, but their sources were different.
+ROB data refers to the robotic data, and LAP data refers to the laparoscopic data.
 
 **Who is this README meant for?**
 
@@ -21,6 +31,25 @@ For further troubleshooting, refer to the Troubleshooting Guide in the Drive.
 All the other packages invoked in this project are generally
 already found with the Python distribution by default,
 such as numpy and random.
+
+## Running the Program
+Here is a list of files that can be executed via Python.
+(I.E run through `python <nameofprogram>`)
+
+* **EMGDataManagerPrototype**:
+This is just for debugging possible errors within the Data Manager.
+It does nothing besides preprocess the data in the `data_sample` directory.
+You can modify the arguments within that file to refer to other directories as well.
+* **EnsembleRatingPrototype and EnsembleSegmentingPrototype**:
+Similarly, this is for simple debugging of the two analysis systems.
+Unlike `EMGDataManagerPrototype`, they do not need arguments to sample data,
+and come with small toy datasets.
+If you would like to learn the flow of those programs, do start there.
+* **EnsembleRating and EnsembleSegmenting**:
+These are the actual programs that execute the respectively titled tasks.
+Note that, similarly to `EMGDataManagerPrototype`,
+you need to initialize the directory to the available data.
+You can see more on how to inspect their output below.
 
 ## Ensemble Rating
 ### How It Works
@@ -136,9 +165,10 @@ ROB Actual
         96, 103, 112, 116]), array([  0,   4,  11,  16,  21,  26,  35,  43,  47,  59,  73,  80,  98,
        112, 122, 130, 143])]
 ```
-Let's take a look at it in more detail:
+Let's take a look at the first pair in more detail:
 ```
-This is the predicted timestamps, where each item represents the timestamp of an action
+These are the predicted timestamps of a single time series,
+    where each item represents the timestamp of an action
 [   0.        ,    7.33333333,   14.33333333,   23.16666667,
          28.08333333,   30.58333333, -252.75      , -247.5       ,
          61.08333333,   75.75      ,   87.16666667,   96.66666667,
